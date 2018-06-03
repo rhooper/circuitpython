@@ -332,7 +332,7 @@ SRC_COMMON_HAL = \
 	audioio/__init__.c \
 	audioio/AudioOut.c \
 	touchio/__init__.c \
-	touchio/TouchIn.c \
+	touchio/TouchIn.c
 
 ifeq ($(INTERNAL_LIBM),1)
 SRC_LIBM = $(addprefix lib/,\
@@ -393,7 +393,9 @@ SRC_SHARED_MODULE = \
 	storage/__init__.c \
 	struct/__init__.c \
 	uheap/__init__.c \
-	ustack/__init__.c
+	ustack/__init__.c  \
+    pixelbuf/__init__.c \
+    pixelbuf/PixelBuf.c
 
 # The smallest SAMD51 packages don't have I2S. Everything else does.
 ifneq ($(CHIP_VARIANT),SAMD51G18A)
