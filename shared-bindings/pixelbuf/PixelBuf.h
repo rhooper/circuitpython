@@ -56,11 +56,15 @@ typedef struct {
     size_t bpp;
     size_t byteorder;
     mp_obj_t bytearray;
+    mp_obj_t rawbytearray;
+    mp_float_t brightness;
+    bool two_buffers;
 } pixelbuf_pixelbuf_obj_t;
 
 void pixelbuf_set_pixel(uint8_t *buf, mp_obj_t *item, uint byteorder, uint bpp);
 mp_obj_t *pixelbuf_get_pixel(uint8_t *buf, uint byteorder, uint bpp);
 mp_obj_t *pixelbuf_get_pixel_array(uint8_t *buf, uint len, uint byteorder, uint bpp);
 void pixelbuf_set_pixel_int(uint8_t *buf, mp_int_t value, uint byteorder, uint bpp);
+void pixelbuf_recalculate_brightness(pixelbuf_pixelbuf_obj_t *self);
 
 #endif  // MICROPY_INCLUDED_SHARED_BINDINGS_PIXELBUF_PIXELBUF_H

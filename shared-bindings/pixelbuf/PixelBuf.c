@@ -44,6 +44,7 @@ static pixelbuf_rgbw_t pixelbuf_byteorder_lookup[] = {
     {2, 1, 0, 3},  // BYTEORDER_BGR
 };
 
+// TODO single bufer brightness
 
 //|   .. attribute:: bpp
 //|
@@ -62,9 +63,52 @@ const mp_obj_property_t pixelbuf_pixelbuf_bpp_obj = {
               (mp_obj_t)&mp_const_none_obj},
 };
 
+
+//|   .. attribute:: brightness
+//|
+//|     Float value between 0 and 1.  Output brightness.
+//|     If the PixelBuf was allocated with two both a buf and a rawbuf,
+//|     setting this value causes a recomputation of the values in buf.
+//|     If only a buf was provided, then the brightness only applies to
+//|     future pixel changes.
+//|
+STATIC mp_obj_t pixelbuf_pixelbuf_obj_get_brightness(mp_obj_t self_in) {
+    pixelbuf_pixelbuf_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    return mp_obj_new_float(self->brightness);
+}
+MP_DEFINE_CONST_FUN_OBJ_1(pixelbuf_pixelbuf_get_brightness_obj, pixelbuf_pixelbuf_obj_get_brightness);
+
+
+STATIC mp_obj_t pixelbuf_pixelbuf_obj_set_brightness(mp_obj_t self_in, mp_obj_t value) {
+    pixelbuf_pixelbuf_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    self->brightness = mp_obj_float_get(value);
+    if (self->brightness > 1) self->brightness = 1;
+    else if (self->brightness < 0) self->brightness = 0;
+    pixelbuf_recalculate_brightness(self);
+    return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_2(pixelbuf_pixelbuf_set_brightness_obj, pixelbuf_pixelbuf_obj_set_brightness);
+
+const mp_obj_property_t pixelbuf_pixelbuf_brightness_obj = {
+    .base.type = &mp_type_property,
+    .proxy = {(mp_obj_t)&pixelbuf_pixelbuf_get_brightness_obj,
+              (mp_obj_t)&pixelbuf_pixelbuf_set_brightness_obj,
+              (mp_obj_t)&mp_const_none_obj},
+};
+
+void pixelbuf_recalculate_brightness(pixelbuf_pixelbuf_obj_t *self) {
+    mp_buffer_info_t destinfo;
+    mp_buffer_info_t srcinfo;
+    mp_get_buffer_raise(self->bytearray, &destinfo, MP_BUFFER_WRITE);
+    mp_get_buffer_raise(self->rawbytearray, &srcinfo, MP_BUFFER_READ);
+    for (uint i = 0; i < self->bytes; i++) {
+        ((uint8_t *)destinfo.buf)[i] = ((uint8_t *)srcinfo.buf)[i] * self->brightness;
+    }
+}
+
 //|   .. attribute:: buf
 //|
-//|     The raw bytearray of pixel data
+//|     The bytearray of pixel data after brightness adjustment
 //|
 STATIC mp_obj_t pixelbuf_pixelbuf_obj_get_buf(mp_obj_t self_in) {
     mp_buffer_info_t bufinfo;
@@ -98,8 +142,6 @@ const mp_obj_property_t pixelbuf_pixelbuf_byteorder_obj = {
               (mp_obj_t)&mp_const_none_obj},
 };
 
-
-
 //|   .. attribute:: len
 //|
 //|     The size of the pixel buffer in pixels (read-only)
@@ -113,6 +155,29 @@ MP_DEFINE_CONST_FUN_OBJ_1(pixelbuf_pixelbuf_get_len_obj, pixelbuf_pixelbuf_obj_g
 const mp_obj_property_t pixelbuf_pixelbuf_len_obj = {
     .base.type = &mp_type_property,
     .proxy = {(mp_obj_t)&pixelbuf_pixelbuf_get_len_obj,
+              (mp_obj_t)&mp_const_none_obj,
+              (mp_obj_t)&mp_const_none_obj},
+};
+
+
+//|   .. attribute:: rawbuf
+//|
+//|     The raw bytearray of pixel data if provided during construction.
+//|
+STATIC mp_obj_t pixelbuf_pixelbuf_obj_get_rawbuf(mp_obj_t self_in) {
+    mp_buffer_info_t bufinfo;
+    pixelbuf_pixelbuf_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    if (self->rawbytearray == mp_const_none) {
+        return mp_const_none;
+    }
+    mp_get_buffer_raise(self->rawbytearray, &bufinfo, MP_BUFFER_READ | MP_BUFFER_WRITE);
+    return mp_obj_new_bytearray_by_ref(bufinfo.len, bufinfo.buf);
+}
+MP_DEFINE_CONST_FUN_OBJ_1(pixelbuf_pixelbuf_get_rawbuf_obj, pixelbuf_pixelbuf_obj_get_rawbuf);
+
+const mp_obj_property_t pixelbuf_pixelbuf_rawbuf_obj = {
+    .base.type = &mp_type_property,
+    .proxy = {(mp_obj_t)&pixelbuf_pixelbuf_get_rawbuf_obj,
               (mp_obj_t)&mp_const_none_obj,
               (mp_obj_t)&mp_const_none_obj},
 };
@@ -153,9 +218,11 @@ STATIC const mp_rom_map_elem_t pixelbuf_pixelbuf_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_BRG), MP_ROM_INT(BYTEORDER_BRG) },
     { MP_ROM_QSTR(MP_QSTR_BGR), MP_ROM_INT(BYTEORDER_BGR) },
     { MP_ROM_QSTR(MP_QSTR_bpp), MP_ROM_PTR(&pixelbuf_pixelbuf_bpp_obj)},
+    { MP_ROM_QSTR(MP_QSTR_brightness), MP_ROM_PTR(&pixelbuf_pixelbuf_brightness_obj)},
     { MP_ROM_QSTR(MP_QSTR_buf), MP_ROM_PTR(&pixelbuf_pixelbuf_buf_obj)},
     { MP_ROM_QSTR(MP_QSTR_byteorder), MP_ROM_PTR(&pixelbuf_pixelbuf_byteorder_obj)},
     { MP_ROM_QSTR(MP_QSTR_len), MP_ROM_PTR(&pixelbuf_pixelbuf_len_obj)},
+    { MP_ROM_QSTR(MP_QSTR_rawbuf), MP_ROM_PTR(&pixelbuf_pixelbuf_rawbuf_obj)},
     { MP_ROM_QSTR(MP_QSTR_size), MP_ROM_PTR(&pixelbuf_pixelbuf_size_obj)},
 };
 
@@ -181,12 +248,14 @@ STATIC mp_obj_t pixelbuf_pixelbuf_make_new(const mp_obj_type_t *type, size_t n_a
     mp_arg_check_num(n_args, n_kw, 2, MP_OBJ_FUN_ARGS_MAX, true);
     mp_map_t kw_args;
     mp_map_init_fixed_table(&kw_args, n_kw, pos_args + n_args);
-    enum { ARG_size, ARG_buf, ARG_byteorder, ARG_bpp };
+    enum { ARG_size, ARG_buf, ARG_byteorder, ARG_bpp, ARG_brightness, ARG_rawbuf };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_size, MP_ARG_REQUIRED | MP_ARG_INT },
         { MP_QSTR_buf, MP_ARG_REQUIRED | MP_ARG_OBJ },
         { MP_QSTR_byteorder, MP_ARG_INT, { .u_int = BYTEORDER_BGR } },
         { MP_QSTR_bpp, MP_ARG_INT, { .u_int = 3 } },
+        { MP_QSTR_brightness, MP_ARG_OBJ, { .u_obj = mp_const_none } },
+        { MP_QSTR_rawbuf, MP_ARG_OBJ, { .u_obj = mp_const_none } },
     };
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args, pos_args, &kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
@@ -209,7 +278,22 @@ STATIC mp_obj_t pixelbuf_pixelbuf_make_new(const mp_obj_type_t *type, size_t n_a
     self->bytes = size;
     self->byteorder = args[ARG_byteorder].u_int;
     self->bytearray = args[ARG_buf].u_obj;
+    if (args[ARG_brightness].u_obj == mp_const_none) {
+        self->brightness = 1.0;
+    } else {
+        self->brightness = mp_obj_get_float(args[ARG_brightness].u_obj);
+    }
 
+    self->two_buffers = args[ARG_rawbuf].u_obj != mp_const_none;
+    if (self->two_buffers) {
+        self->rawbytearray = args[ARG_rawbuf].u_obj;
+        mp_buffer_info_t bufinfo2;
+        mp_get_buffer_raise(args[ARG_rawbuf].u_obj, &bufinfo2, MP_BUFFER_READ | MP_BUFFER_WRITE);
+        if (bufinfo2.len != bufinfo.len) {
+            mp_raise_ValueError("rawbuf is not the same size as buf");
+        }
+    }
+    
     return MP_OBJ_FROM_PTR(self);
 }
 
@@ -239,7 +323,15 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                 uint8_t* src_items;
                 mp_buffer_info_t destinfo;
                 mp_get_buffer_raise(self->bytearray, &destinfo, MP_BUFFER_WRITE);
-                uint8_t *destbuf = (uint8_t *) destinfo.buf;
+                uint8_t *destbuf = NULL, *adjustedbuf = NULL;
+                if (self->two_buffers) {
+                    mp_buffer_info_t destinfo2;
+                    mp_get_buffer_raise(self->rawbytearray, &destinfo2, MP_BUFFER_WRITE);
+                    destbuf = (uint8_t *) destinfo2.buf;
+                    adjustedbuf = (uint8_t *) destinfo.buf;
+                } else {
+                    destbuf = (uint8_t *) destinfo.buf;
+                }
                 if (MP_OBJ_IS_TYPE(value, &mp_type_array) ||
                         MP_OBJ_IS_TYPE(value, &mp_type_bytearray) ||
                         MP_OBJ_IS_TYPE(value, &mp_type_memoryview) ||
@@ -275,7 +367,13 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                         if (MP_OBJ_IS_TYPE(value, &mp_type_list) ||
                                 MP_OBJ_IS_TYPE(value, &mp_type_tuple) ||
                                 MP_OBJ_IS_INT(value)) {
+                            // This would be the raw pixels before scaling
                             pixelbuf_set_pixel(destbuf + (i * self->bpp), item, self->byteorder, self->bpp);
+                            if (self->two_buffers) {
+                                for (uint j = 0; j < self->bpp; j++) {
+                                    adjustedbuf[(i * self->bpp) + j] = (destbuf[(i * self->bpp) + j] * self->brightness);
+                                }
+                            }
                         }
                     }
                     return mp_const_none;
@@ -290,6 +388,11 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                     items[2] = MP_OBJ_NEW_SMALL_INT(src_items[i+2]);
                     mp_obj_t *tuple = mp_obj_new_tuple(3, items);
                     pixelbuf_set_pixel(destbuf + (i * self->bpp), tuple, self->byteorder, self->bpp);
+                    if (self->two_buffers) {
+                        for (uint j = 0; j < self->bpp; j++) {
+                            adjustedbuf[(i * self->bpp) + j] = (destbuf[(i * self->bpp) + j] * self->brightness);
+                        }
+                    }
                 }
                 return mp_const_none;
                 #else
@@ -298,7 +401,7 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
             } else {
                 // Read slice.
                 size_t len = slice.stop - slice.start;
-                mp_get_buffer_raise(self->bytearray, &bufinfo, MP_BUFFER_READ);
+                mp_get_buffer_raise(self->two_buffers ? self->rawbytearray : self->bytearray, &bufinfo, MP_BUFFER_READ);
                 //return mp_obj_new_bytearray(len, (uint8_t *) bufinfo.buf + slice.start);
                 return pixelbuf_get_pixel_array((uint8_t *) bufinfo.buf + slice.start, len, self->byteorder, self->bpp);
             }
@@ -309,7 +412,7 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
             size_t offset = (index * self->bpp);
             if (offset + self->bpp > self->bytes) 
                 mp_raise_IndexError("Pixel beyond bounds of buffer");
-            mp_get_buffer_raise(self->bytearray, &bufinfo, MP_BUFFER_READ);
+            mp_get_buffer_raise(self->two_buffers ? self->rawbytearray : self->bytearray, &bufinfo, MP_BUFFER_READ);
             uint8_t *pixelstart = (uint8_t *)(bufinfo.buf) + offset;
             if (value == MP_OBJ_SENTINEL) {
                 // load
@@ -317,6 +420,14 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
             } else {
                 // store
                 pixelbuf_set_pixel(pixelstart, value, self->byteorder, self->bpp);
+                if (self->two_buffers) {
+                    mp_buffer_info_t destinfo2;
+                    mp_get_buffer_raise(self->bytearray, &destinfo2, MP_BUFFER_WRITE);
+                    uint8_t *adjustedstart = (uint8_t *)(destinfo2.buf) + offset;
+                    for (uint j = 0; j < self->bpp; j++) {
+                        adjustedstart[j] = (pixelstart[j] * self->brightness);
+                    }
+                }
                 return mp_const_none;
             }
         }
