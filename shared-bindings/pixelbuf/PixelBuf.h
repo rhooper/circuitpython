@@ -59,6 +59,8 @@ typedef struct {
     mp_obj_t rawbytearray;
     mp_float_t brightness;
     bool two_buffers;
+    uint8_t *rawbuf;
+    uint8_t *buf;
 } pixelbuf_pixelbuf_obj_t;
 
 void pixelbuf_set_pixel(uint8_t *buf, mp_obj_t *item, uint byteorder, uint bpp);
