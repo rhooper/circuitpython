@@ -316,6 +316,7 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
             }
             if ((slice.stop * self->bpp) > self->bytes) 
                 mp_raise_IndexError("Range beyond bounds of pixel buffer");
+
             if (value != MP_OBJ_SENTINEL) {
                 #if MICROPY_PY_ARRAY_SLICE_ASSIGN
                 size_t dst_len = slice.stop - slice.start;
@@ -336,6 +337,7 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                     if (1 != mp_binary_get_size('@', bufinfo.typecode, NULL)) {
                         mp_raise_ValueError("Array values should be single bytes.");
                     }
+                    dst_size = dst_len;
                     if (bufinfo.len != dst_size) {
                         mp_raise_ValueError_varg("Unmatched number of bytes on RHS (expected %d, got %d).", 
                                                  dst_size, bufinfo.len);
@@ -376,16 +378,23 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                     mp_raise_NotImplementedError("array/bytes/tuple/list required on right side");
                 }
 
+                // "direct" pixel assignment
+                if (slice.start % self->bpp != 0 || slice.stop % self->bpp != 0) 
+                    mp_raise_IndexError("Indices must align with pixel boundaries");
+
                 for (uint i=slice.start; i < slice.stop; i += self->bpp) {
-                    mp_obj_t items[3];
+                    mp_obj_t items[4];
                     items[0] = MP_OBJ_NEW_SMALL_INT(src_items[i]);
                     items[1] = MP_OBJ_NEW_SMALL_INT(src_items[i+1]);
                     items[2] = MP_OBJ_NEW_SMALL_INT(src_items[i+2]);
-                    mp_obj_t *tuple = mp_obj_new_tuple(3, items);
-                    pixelbuf_set_pixel(destbuf + (i * self->bpp), tuple, self->byteorder, self->bpp);
+                    if (self->bpp == 4)
+                        items[3] = MP_OBJ_NEW_SMALL_INT(src_items[i+3]);
+
+                    mp_obj_t *tuple = mp_obj_new_tuple(self->bpp, items);
+                    pixelbuf_set_pixel(destbuf + i, tuple, self->byteorder, self->bpp);
                     if (self->two_buffers) {
                         for (uint j = 0; j < self->bpp; j++) {
-                            adjustedbuf[(i * self->bpp) + j] = (destbuf[(i * self->bpp) + j] * self->brightness);
+                            adjustedbuf[i + j] = (destbuf[i + j] * self->brightness);
                         }
                     }
                 }
