@@ -44,8 +44,6 @@ static pixelbuf_rgbw_t pixelbuf_byteorder_lookup[] = {
     {2, 1, 0, 3},  // BYTEORDER_BGR
 };
 
-// TODO single bufer brightness
-
 //|   .. attribute:: bpp
 //|
 //|     The number of bytes per pixel in the buffer (read-only)
@@ -370,6 +368,10 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                                 for (uint j = 0; j < self->bpp; j++) {
                                     adjustedbuf[(i * self->bpp) + j] = (destbuf[(i * self->bpp) + j] * self->brightness);
                                 }
+                            } else {
+                                for (uint j = 0; j < self->bpp; j++) {
+                                    destbuf[(i * self->bpp) + j] = (destbuf[(i * self->bpp) + j] * self->brightness);
+                                }
                             }
                         }
                     }
@@ -392,9 +394,14 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
 
                     mp_obj_t *tuple = mp_obj_new_tuple(self->bpp, items);
                     pixelbuf_set_pixel(destbuf + i, tuple, self->byteorder, self->bpp);
+                    // this should probbly be optimized and refactored
                     if (self->two_buffers) {
                         for (uint j = 0; j < self->bpp; j++) {
                             adjustedbuf[i + j] = (destbuf[i + j] * self->brightness);
+                        }
+                    } else {
+                        for (uint j = 0; j < self->bpp; j++) {
+                            destbuf[i + j] = (destbuf[i + j] * self->brightness);
                         }
                     }
                 }
@@ -427,6 +434,10 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                     uint8_t *adjustedstart = self->buf + offset;
                     for (uint j = 0; j < self->bpp; j++) {
                         adjustedstart[j] = (pixelstart[j] * self->brightness);
+                    }
+                } else {
+                    for (uint j = 0; j < self->bpp; j++) {
+                        pixelstart[j] = (pixelstart[j] * self->brightness);
                     }
                 }
                 return mp_const_none;
