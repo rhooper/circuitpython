@@ -19,7 +19,8 @@
 	url = https://github.com/Microsoft/uf2.git
 [submodule "atmel-samd/frozen/Adafruit_CircuitPython_NeoPixel"]
 	path = frozen/Adafruit_CircuitPython_NeoPixel
-	url = https://github.com/adafruit/Adafruit_CircuitPython_NeoPixel
+	url = https://github.com/rhooper/Adafruit_CircuitPython_NeoPixel
+    branch = pixelbuf_only
 [submodule "frozen/Adafruit_CircuitPython_Thermistor"]
 	path = frozen/Adafruit_CircuitPython_Thermistor
 	url = https://github.com/adafruit/Adafruit_CircuitPython_Thermistor.git
