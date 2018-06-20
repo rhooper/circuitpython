@@ -24,26 +24,29 @@
  * THE SOFTWARE.
  */
 
-#ifndef MICROPY_INCLUDED_SHARED_BINDINGS_PIXELBUF_PIXELBUF_H
-#define MICROPY_INCLUDED_SHARED_BINDINGS_PIXELBUF_PIXELBUF_H
+
+#include "py/obj.h"
+#include "py/objarray.h"
+
+#ifndef PIXELBUF_SHARED_MODULE_H
+#define PIXELBUF_SHARED_MODULE_H
 
 
-const mp_obj_type_t pixelbuf_pixelbuf_type;
+#define BYTEORDER_RGB 0
+#define BYTEORDER_RBG 1
+#define BYTEORDER_GRB 2
+#define BYTEORDER_GBR 3
+#define BYTEORDER_BRG 4
+#define BYTEORDER_BGR 5
 
-typedef struct {
-    mp_obj_base_t base;
-    size_t pixels;
-    size_t bytes;
-    size_t bpp;
-    size_t byteorder;
-    mp_obj_t bytearray;
-    mp_obj_t rawbytearray;
-    mp_float_t brightness;
-    bool two_buffers;
-    uint8_t *rawbuf;
-    uint8_t *buf;
-} pixelbuf_pixelbuf_obj_t;
+#define PIXEL_R 0
+#define PIXEL_G 1
+#define PIXEL_B 2
+#define PIXEL_W 3
 
-void pixelbuf_recalculate_brightness(pixelbuf_pixelbuf_obj_t *self);
+void pixelbuf_set_pixel(uint8_t *buf, mp_obj_t *item, uint byteorder, uint bpp);
+mp_obj_t *pixelbuf_get_pixel(uint8_t *buf, uint byteorder, uint bpp);
+mp_obj_t *pixelbuf_get_pixel_array(uint8_t *buf, uint len, uint byteorder, uint bpp);
+void pixelbuf_set_pixel_int(uint8_t *buf, mp_int_t value, uint byteorder, uint bpp);
 
-#endif  // MICROPY_INCLUDED_SHARED_BINDINGS_PIXELBUF_PIXELBUF_H
+#endif

@@ -34,6 +34,7 @@
 #include <string.h>
 
 #include "PixelBuf.h"
+#include "../../shared-module/pixelbuf/PixelBuf.h"
 
 
 //| .. currentmodule:: pixelbuf
@@ -109,16 +110,6 @@ STATIC mp_obj_t pixelbuf_pixelbuf_make_new(const mp_obj_type_t *type, size_t n_a
     
     return MP_OBJ_FROM_PTR(self);
 }
-
-
-static pixelbuf_rgbw_t pixelbuf_byteorder_lookup[] = {
-    {0, 1, 2, 3},  // BYTEORDER_RGB
-    {0, 2, 1, 3},  // BYTEORDER_RBG
-    {1, 0, 2, 3},  // BYTEORDER_GRB
-    {1, 2, 0, 3},  // BYTEORDER_GBR
-    {2, 0, 1, 3},  // BYTEORDER_BRG
-    {2, 1, 0, 3},  // BYTEORDER_BGR
-};
 
 //|   .. attribute:: bpp
 //|
@@ -408,55 +399,6 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
         }
     }
 }
-
-void pixelbuf_set_pixel_int(uint8_t *buf, mp_int_t value, uint byteorder, uint bpp) {
-        buf[pixelbuf_byteorder_lookup[byteorder].r] = value >> 16 & 0xff;
-        buf[pixelbuf_byteorder_lookup[byteorder].g] = (value >> 8) & 0xff;
-        buf[pixelbuf_byteorder_lookup[byteorder].b] = value & 0xff;
-        if (bpp == 4 && (buf[0] == buf[1]) && (buf[1] == buf[2]) && (buf[2] == buf[3])) { // Assumes W is always 4th byte.
-            buf[3] = buf[0];
-            buf[1] = buf[2] = 0;
-        }
-}
-
-void pixelbuf_set_pixel(uint8_t *buf, mp_obj_t *item, uint byteorder, uint bpp) {
-    if (MP_OBJ_IS_INT(item)) {
-        pixelbuf_set_pixel_int(buf, mp_obj_get_int_truncated(item), byteorder, bpp);
-    } else {
-        mp_obj_t *items;
-        size_t len;
-        mp_obj_get_array(item, &len, &items);
-        if (len != bpp) {
-            mp_raise_ValueError_varg("Expected tuple of length %d, got %d", bpp, len);
-        }
-        buf[pixelbuf_byteorder_lookup[byteorder].r] = mp_obj_get_int_truncated(items[PIXEL_R]);
-        buf[pixelbuf_byteorder_lookup[byteorder].g] = mp_obj_get_int_truncated(items[PIXEL_G]);
-        buf[pixelbuf_byteorder_lookup[byteorder].b] = mp_obj_get_int_truncated(items[PIXEL_B]);
-        if (bpp > 3)
-            buf[pixelbuf_byteorder_lookup[byteorder].w] = mp_obj_get_int_truncated(items[PIXEL_W]);
-    }
-}
-
-mp_obj_t *pixelbuf_get_pixel_array(uint8_t *buf, uint len, uint byteorder, uint bpp) {
-    mp_obj_t elems[len];
-    for (uint i = 0; i < len; i++) {
-        elems[i] = pixelbuf_get_pixel(buf + (i * bpp), byteorder, bpp);
-    }
-    return mp_obj_new_tuple(len, elems);
-}
-
-mp_obj_t *pixelbuf_get_pixel(uint8_t *buf, uint byteorder, uint bpp) {
-    mp_obj_t elems[bpp];
-   
-    elems[0] = mp_obj_new_int(buf[pixelbuf_byteorder_lookup[byteorder].r]);
-    elems[1] = mp_obj_new_int(buf[pixelbuf_byteorder_lookup[byteorder].g]);
-    elems[2] = mp_obj_new_int(buf[pixelbuf_byteorder_lookup[byteorder].b]);
-    if (bpp > 3)
-        elems[3] = mp_obj_new_int(buf[pixelbuf_byteorder_lookup[byteorder].w]);
-
-    return mp_obj_new_tuple(bpp, elems);
-}
-
 
 const mp_obj_type_t pixelbuf_pixelbuf_type = {
         { &mp_type_type },
