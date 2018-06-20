@@ -393,9 +393,12 @@ SRC_SHARED_MODULE = \
 	storage/__init__.c \
 	struct/__init__.c \
 	uheap/__init__.c \
-	ustack/__init__.c  \
-    pixelbuf/__init__.c \
-    pixelbuf/PixelBuf.c
+	ustack/__init__.c 
+
+ifndef EXCLUDE_PIXELBUF
+	SRC_SHARED_MODULE += pixelbuf/__init__.c \
+    	pixelbuf/PixelBuf.c
+endif
 
 # The smallest SAMD51 packages don't have I2S. Everything else does.
 ifneq ($(CHIP_VARIANT),SAMD51G18A)
