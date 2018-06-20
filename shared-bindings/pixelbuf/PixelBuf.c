@@ -35,6 +35,82 @@
 
 #include "PixelBuf.h"
 
+
+//| .. currentmodule:: pixelbuf
+//|
+//| :class:`PixelBuf` -- An RGB[W] Pixel Buffer
+//| ===========================================
+//|
+//| :class:`~pixelbuf.PixelBuf` implements an RGB[W] bytearray abstraction.
+//|
+//| .. class:: PixelBuf(size, buf, byteorder=BGR, bpp=3)
+//|
+//|   Create a PixelBuf object of the specified size, byteorder, and bits per pixel.
+//|
+//|   :param ~int size: Number of pixels
+//|   :param ~bytearray buf: Bytearray to store pixel data in
+//|   :param ~pixelbuf.BGR: Byte order
+//|   :param ~int: Bytes per pixel
+//|
+STATIC mp_obj_t pixelbuf_pixelbuf_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *pos_args) {
+    mp_arg_check_num(n_args, n_kw, 2, MP_OBJ_FUN_ARGS_MAX, true);
+    mp_map_t kw_args;
+    mp_map_init_fixed_table(&kw_args, n_kw, pos_args + n_args);
+    enum { ARG_size, ARG_buf, ARG_byteorder, ARG_bpp, ARG_brightness, ARG_rawbuf };
+    static const mp_arg_t allowed_args[] = {
+        { MP_QSTR_size, MP_ARG_REQUIRED | MP_ARG_INT },
+        { MP_QSTR_buf, MP_ARG_REQUIRED | MP_ARG_OBJ },
+        { MP_QSTR_byteorder, MP_ARG_INT, { .u_int = BYTEORDER_BGR } },
+        { MP_QSTR_bpp, MP_ARG_INT, { .u_int = 3 } },
+        { MP_QSTR_brightness, MP_ARG_OBJ, { .u_obj = mp_const_none } },
+        { MP_QSTR_rawbuf, MP_ARG_OBJ, { .u_obj = mp_const_none } },
+    };
+    mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+    mp_arg_parse_all(n_args, pos_args, &kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+
+    size_t bpp = args[ARG_bpp].u_int;
+    size_t size = args[ARG_size].u_int * bpp;
+
+    mp_buffer_info_t bufinfo, rawbufinfo;
+    mp_get_buffer_raise(args[ARG_buf].u_obj, &bufinfo, MP_BUFFER_READ | MP_BUFFER_WRITE);
+    bool two_buffers = args[ARG_rawbuf].u_obj != mp_const_none;
+    if (two_buffers) {
+        mp_get_buffer_raise(args[ARG_rawbuf].u_obj, &rawbufinfo, MP_BUFFER_READ | MP_BUFFER_WRITE);
+        if (rawbufinfo.len != bufinfo.len) {
+            mp_raise_ValueError("rawbuf is not the same size as buf");
+        }
+    }
+    
+    if (size > bufinfo.len) {
+        mp_raise_ValueError_varg("buf is too small.  Need at least %d bytes.", size);
+    }
+
+    pixelbuf_pixelbuf_obj_t *self = m_new_obj(pixelbuf_pixelbuf_obj_t);
+
+    self->base.type = &pixelbuf_pixelbuf_type;
+    self->pixels = args[ARG_size].u_int;
+    self->bpp = bpp;
+    self->bytes = size;
+    self->byteorder = args[ARG_byteorder].u_int;
+    self->bytearray = args[ARG_buf].u_obj;
+    self->buf = bufinfo.buf;
+    self->rawbuf = two_buffers ? rawbufinfo.buf : NULL;
+    self->two_buffers = two_buffers;
+
+    if (args[ARG_brightness].u_obj == mp_const_none) {
+        self->brightness = 1.0;
+    } else {
+        self->brightness = mp_obj_get_float(args[ARG_brightness].u_obj);
+    }
+
+    if (two_buffers) {
+        self->rawbytearray = args[ARG_rawbuf].u_obj;
+    }
+    
+    return MP_OBJ_FROM_PTR(self);
+}
+
+
 static pixelbuf_rgbw_t pixelbuf_byteorder_lookup[] = {
     {0, 1, 2, 3},  // BYTEORDER_RGB
     {0, 2, 1, 3},  // BYTEORDER_RBG
@@ -182,81 +258,6 @@ STATIC const mp_rom_map_elem_t pixelbuf_pixelbuf_locals_dict_table[] = {
 };
 
 STATIC MP_DEFINE_CONST_DICT(pixelbuf_pixelbuf_locals_dict, pixelbuf_pixelbuf_locals_dict_table);
-
-//| .. currentmodule:: pixelbuf
-//|
-//| :class:`PixelBuf` -- An RGB[W] Pixel Buffer
-//| ===========================================
-//|
-//| :class:`~pixelbuf.PixelBuf` implements an RGB[W] bytearray abstraction.
-//|
-//| .. class:: PixelBuf(size, buf, byteorder=BGR, bpp=3)
-//|
-//|   Create a PixelBuf object of the specified size, byteorder, and bits per pixel.
-//|
-//|   :param ~int size: Number of pixels
-//|   :param ~bytearray buf: Bytearray to store pixel data in
-//|   :param ~pixelbuf.BGR: Byte order
-//|   :param ~int: Bytes per pixel
-//|
-STATIC mp_obj_t pixelbuf_pixelbuf_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *pos_args) {
-    mp_arg_check_num(n_args, n_kw, 2, MP_OBJ_FUN_ARGS_MAX, true);
-    mp_map_t kw_args;
-    mp_map_init_fixed_table(&kw_args, n_kw, pos_args + n_args);
-    enum { ARG_size, ARG_buf, ARG_byteorder, ARG_bpp, ARG_brightness, ARG_rawbuf };
-    static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_size, MP_ARG_REQUIRED | MP_ARG_INT },
-        { MP_QSTR_buf, MP_ARG_REQUIRED | MP_ARG_OBJ },
-        { MP_QSTR_byteorder, MP_ARG_INT, { .u_int = BYTEORDER_BGR } },
-        { MP_QSTR_bpp, MP_ARG_INT, { .u_int = 3 } },
-        { MP_QSTR_brightness, MP_ARG_OBJ, { .u_obj = mp_const_none } },
-        { MP_QSTR_rawbuf, MP_ARG_OBJ, { .u_obj = mp_const_none } },
-    };
-    mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
-    mp_arg_parse_all(n_args, pos_args, &kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
-
-    size_t bpp = args[ARG_bpp].u_int;
-    size_t size = args[ARG_size].u_int * bpp;
-
-    mp_buffer_info_t bufinfo, rawbufinfo;
-    mp_get_buffer_raise(args[ARG_buf].u_obj, &bufinfo, MP_BUFFER_READ | MP_BUFFER_WRITE);
-    bool two_buffers = args[ARG_rawbuf].u_obj != mp_const_none;
-    if (two_buffers) {
-        mp_get_buffer_raise(args[ARG_rawbuf].u_obj, &rawbufinfo, MP_BUFFER_READ | MP_BUFFER_WRITE);
-        if (rawbufinfo.len != bufinfo.len) {
-            mp_raise_ValueError("rawbuf is not the same size as buf");
-        }
-    }
-    
-    if (size > bufinfo.len) {
-        mp_raise_ValueError_varg("buf is too small.  Need at least %d bytes.", size);
-    }
-
-    pixelbuf_pixelbuf_obj_t *self = m_new_obj(pixelbuf_pixelbuf_obj_t);
-
-    self->base.type = &pixelbuf_pixelbuf_type;
-    self->pixels = args[ARG_size].u_int;
-    self->bpp = bpp;
-    self->bytes = size;
-    self->byteorder = args[ARG_byteorder].u_int;
-    self->bytearray = args[ARG_buf].u_obj;
-    self->buf = bufinfo.buf;
-    self->rawbuf = two_buffers ? rawbufinfo.buf : NULL;
-    self->two_buffers = two_buffers;
-
-    if (args[ARG_brightness].u_obj == mp_const_none) {
-        self->brightness = 1.0;
-    } else {
-        self->brightness = mp_obj_get_float(args[ARG_brightness].u_obj);
-    }
-
-    if (two_buffers) {
-        self->rawbytearray = args[ARG_rawbuf].u_obj;
-    }
-    
-    return MP_OBJ_FROM_PTR(self);
-}
-
 
 
 STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp_obj_t value) {
