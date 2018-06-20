@@ -251,8 +251,6 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
             if (value != MP_OBJ_SENTINEL) {
                 #if MICROPY_PY_ARRAY_SLICE_ASSIGN
                 size_t dst_len = slice.stop - slice.start;
-                size_t dst_size = dst_len * self->bpp;
-                uint8_t* src_items;
                 uint8_t *destbuf = NULL, *adjustedbuf = NULL;
                 if (self->two_buffers) {
                     destbuf = self->rawbuf;
@@ -260,22 +258,8 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                 } else {
                     destbuf = self->buf;
                 }
-                if (MP_OBJ_IS_TYPE(value, &mp_type_array) ||
-                        MP_OBJ_IS_TYPE(value, &mp_type_bytearray) ||
-                        MP_OBJ_IS_TYPE(value, &mp_type_memoryview) ||
-                        MP_OBJ_IS_TYPE(value, &mp_type_bytes)) {
-                    mp_get_buffer_raise(value, &bufinfo, MP_BUFFER_READ);
-                    if (1 != mp_binary_get_size('@', bufinfo.typecode, NULL)) {
-                        mp_raise_ValueError("Array values should be single bytes.");
-                    }
-                    dst_size = dst_len;
-                    if (bufinfo.len != dst_size) {
-                        mp_raise_ValueError_varg("Unmatched number of bytes on RHS (expected %d, got %d).", 
-                                                 dst_size, bufinfo.len);
-                    }
-                    src_items = bufinfo.buf;
-                } else if (MP_OBJ_IS_TYPE(value, &mp_type_list) ||
-                            MP_OBJ_IS_TYPE(value, &mp_type_tuple)) {
+                if (MP_OBJ_IS_TYPE(value, &mp_type_list) ||
+                        MP_OBJ_IS_TYPE(value, &mp_type_tuple)) {
                     mp_obj_t *src_objs;
                     size_t num_items;
                     if (MP_OBJ_IS_TYPE(value, &mp_type_list)) {
@@ -310,35 +294,8 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                     }
                     return mp_const_none;
                 } else {
-                    mp_raise_NotImplementedError("array/bytes/tuple/list required on right side");
+                    mp_raise_NotImplementedError("tuple/list required on right side");
                 }
-
-                // "direct" pixel assignment
-                if (slice.start % self->bpp != 0 || slice.stop % self->bpp != 0) 
-                    mp_raise_IndexError("Indices must align with pixel boundaries");
-
-                for (uint i=slice.start; i < slice.stop; i += self->bpp) {
-                    mp_obj_t items[4];
-                    items[0] = MP_OBJ_NEW_SMALL_INT(src_items[i]);
-                    items[1] = MP_OBJ_NEW_SMALL_INT(src_items[i+1]);
-                    items[2] = MP_OBJ_NEW_SMALL_INT(src_items[i+2]);
-                    if (self->bpp == 4)
-                        items[3] = MP_OBJ_NEW_SMALL_INT(src_items[i+3]);
-
-                    mp_obj_t *tuple = mp_obj_new_tuple(self->bpp, items);
-                    pixelbuf_set_pixel(destbuf + i, tuple, self->byteorder, self->bpp);
-                    // this should probbly be optimized and refactored
-                    if (self->two_buffers) {
-                        for (uint j = 0; j < self->bpp; j++) {
-                            adjustedbuf[i + j] = (destbuf[i + j] * self->brightness);
-                        }
-                    } else {
-                        for (uint j = 0; j < self->bpp; j++) {
-                            destbuf[i + j] = (destbuf[i + j] * self->brightness);
-                        }
-                    }
-                }
-                return mp_const_none;
                 #else
                 return MP_OBJ_NULL; // op not supported
                 #endif
