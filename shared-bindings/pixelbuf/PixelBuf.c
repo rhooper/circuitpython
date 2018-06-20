@@ -204,26 +204,6 @@ const mp_obj_property_t pixelbuf_pixelbuf_byteorder_obj = {
               (mp_obj_t)&mp_const_none_obj},
 };
 
-//|   .. attribute:: rawbuf
-//|
-//|     The raw bytearray of pixel data if provided during construction.
-//|
-STATIC mp_obj_t pixelbuf_pixelbuf_obj_get_rawbuf(mp_obj_t self_in) {
-    pixelbuf_pixelbuf_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    if (self->rawbuf == NULL) {
-        return mp_const_none;
-    }
-    return mp_obj_new_bytearray_by_ref(self->bytes, self->rawbuf);
-}
-MP_DEFINE_CONST_FUN_OBJ_1(pixelbuf_pixelbuf_get_rawbuf_obj, pixelbuf_pixelbuf_obj_get_rawbuf);
-
-const mp_obj_property_t pixelbuf_pixelbuf_rawbuf_obj = {
-    .base.type = &mp_type_property,
-    .proxy = {(mp_obj_t)&pixelbuf_pixelbuf_get_rawbuf_obj,
-              (mp_obj_t)&mp_const_none_obj,
-              (mp_obj_t)&mp_const_none_obj},
-};
-
 STATIC mp_obj_t pixelbuf_pixelbuf_unary_op(mp_unary_op_t op, mp_obj_t self_in) {
     pixelbuf_pixelbuf_obj_t *self = MP_OBJ_TO_PTR(self_in);
     switch (op) {
@@ -245,7 +225,6 @@ STATIC const mp_rom_map_elem_t pixelbuf_pixelbuf_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_brightness), MP_ROM_PTR(&pixelbuf_pixelbuf_brightness_obj)},
     { MP_ROM_QSTR(MP_QSTR_buf), MP_ROM_PTR(&pixelbuf_pixelbuf_buf_obj)},
     { MP_ROM_QSTR(MP_QSTR_byteorder), MP_ROM_PTR(&pixelbuf_pixelbuf_byteorder_obj)},
-    { MP_ROM_QSTR(MP_QSTR_rawbuf), MP_ROM_PTR(&pixelbuf_pixelbuf_rawbuf_obj)},
 };
 
 STATIC MP_DEFINE_CONST_DICT(pixelbuf_pixelbuf_locals_dict, pixelbuf_pixelbuf_locals_dict_table);
