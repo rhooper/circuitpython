@@ -239,6 +239,8 @@ SRC_SHARED_MODULE = \
 	bitbangio/OneWire.c \
 	bitbangio/SPI.c \
 	busio/OneWire.c \
+	pixelbuf/__init__.c \
+	pixelbuf/PixelBuf.c \
 
 #	uheap/__init__.c \
 	ustack/__init__.c
@@ -250,7 +252,9 @@ SRC_SHARED_BINDINGS = \
 	bitbangio/__init__.c \
 	bitbangio/I2C.c \
 	bitbangio/SPI.c \
-	bitbangio/OneWire.c
+	bitbangio/OneWire.c \
+	pixelbuf/__init__.c \
+	pixelbuf/PixelBuf.c
 
 
 SRC_SHARED_MODULE_EXPANDED = $(addprefix shared-bindings/, $(SRC_SHARED_BINDINGS)) \
