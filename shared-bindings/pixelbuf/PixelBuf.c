@@ -48,10 +48,17 @@
 //|
 //|   Create a PixelBuf object of the specified size, byteorder, and bits per pixel.
 //|
+//|   When given a second bytearray (`rawbuf`), changing brightness adjusts the
+//|   brightness of all members of `buf`.
+//|
+//|   When only given `buf`, `brightness` applies to the next pixel assignment.
+//|
 //|   :param ~int size: Number of pixels
 //|   :param ~bytearray buf: Bytearray to store pixel data in
-//|   :param ~pixelbuf.BGR: Byte order
-//|   :param ~int: Bytes per pixel
+//|   :param ~pixelbuf.BGR byteorder: Byte order
+//|   :param ~int bpp: Bytes per pixel
+//|   :param ~float brightness: Brightness (0 to 1)
+//|   :param ~bytearray rawbuf: Bytearray to store raw pixel colors in
 //|
 STATIC mp_obj_t pixelbuf_pixelbuf_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *pos_args) {
     mp_arg_check_num(n_args, n_kw, 2, MP_OBJ_FUN_ARGS_MAX, true);
@@ -243,7 +250,7 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
             mp_bound_slice_t slice;
             mp_buffer_info_t bufinfo;
             if (!mp_seq_get_fast_slice_indexes(self->bytes, index_in, &slice)) {
-                mp_raise_NotImplementedError("only slices with step=1 (aka None) are supported");
+                mp_raise_NotImplementedError("Only slices with step=1 (aka None) are supported");
             }
             if ((slice.stop * self->bpp) > self->bytes) 
                 mp_raise_IndexError("Range beyond bounds of pixel buffer");
@@ -294,7 +301,7 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                     }
                     return mp_const_none;
                 } else {
-                    mp_raise_NotImplementedError("tuple/list required on right side");
+                    mp_raise_ValueError("tuple/list required on RHS");
                 }
                 #else
                 return MP_OBJ_NULL; // op not supported
@@ -303,7 +310,6 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                 // Read slice.
                 size_t len = slice.stop - slice.start;
                 mp_get_buffer_raise(self->two_buffers ? self->rawbytearray : self->bytearray, &bufinfo, MP_BUFFER_READ);
-                //return mp_obj_new_bytearray(len, (uint8_t *) bufinfo.buf + slice.start);
                 return pixelbuf_get_pixel_array((uint8_t *) bufinfo.buf + slice.start, len, self->byteorder, self->bpp);
             }
 #endif
