@@ -56,21 +56,26 @@ void pixelbuf_set_pixel_int(uint8_t *buf, mp_int_t value, uint byteorder, uint b
         }
 }
 
-void pixelbuf_set_pixel(uint8_t *buf, mp_obj_t *item, uint byteorder, uint bpp) {
+void pixelbuf_set_pixel(uint8_t *buf, mp_obj_t *item, uint byteorder, uint bpp, bool dotstar) {
     if (MP_OBJ_IS_INT(item)) {
         pixelbuf_set_pixel_int(buf, mp_obj_get_int_truncated(item), byteorder, bpp);
     } else {
         mp_obj_t *items;
         size_t len;
         mp_obj_get_array(item, &len, &items);
-        if (len != bpp) {
+        if (len != bpp && !dotstar) {
             mp_raise_ValueError_varg("Expected tuple of length %d, got %d", bpp, len);
         }
         buf[pixelbuf_byteorder_lookup[byteorder].r] = mp_obj_get_int_truncated(items[PIXEL_R]);
         buf[pixelbuf_byteorder_lookup[byteorder].g] = mp_obj_get_int_truncated(items[PIXEL_G]);
         buf[pixelbuf_byteorder_lookup[byteorder].b] = mp_obj_get_int_truncated(items[PIXEL_B]);
-        if (bpp > 3)
-            buf[pixelbuf_byteorder_lookup[byteorder].w] = mp_obj_get_int_truncated(items[PIXEL_W]);
+        if (len > 3) {
+            if (dotstar) {
+                *(buf-1) = DOTSTAR_BRIGHTNESS(mp_obj_get_float(items[PIXEL_W]));
+            } else {
+                buf[pixelbuf_byteorder_lookup[byteorder].w] = mp_obj_get_int_truncated(items[PIXEL_W]);
+            }
+        }
     }
 }
 

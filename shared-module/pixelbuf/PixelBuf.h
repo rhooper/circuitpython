@@ -44,7 +44,11 @@
 #define PIXEL_B 2
 #define PIXEL_W 3
 
-void pixelbuf_set_pixel(uint8_t *buf, mp_obj_t *item, uint byteorder, uint bpp);
+#define DOTSTAR_LED_START 0b11100000
+#define DOTSTAR_BRIGHTNESS(brightness) ((32 - (uint8_t)(32 - brightness * 31)) & 0b00011111)
+enum dotstar_mode_enum { dotstar_off = 0, dotstar_rgb, dotstar_rgb_brightness };
+
+void pixelbuf_set_pixel(uint8_t *buf, mp_obj_t *item, uint byteorder, uint bpp, bool dotstar);
 mp_obj_t *pixelbuf_get_pixel(uint8_t *buf, uint byteorder, uint bpp);
 mp_obj_t *pixelbuf_get_pixel_array(uint8_t *buf, uint len, uint byteorder, uint bpp);
 void pixelbuf_set_pixel_int(uint8_t *buf, mp_int_t value, uint byteorder, uint bpp);

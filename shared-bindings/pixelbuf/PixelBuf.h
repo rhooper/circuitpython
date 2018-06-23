@@ -27,7 +27,6 @@
 #ifndef MICROPY_INCLUDED_SHARED_BINDINGS_PIXELBUF_PIXELBUF_H
 #define MICROPY_INCLUDED_SHARED_BINDINGS_PIXELBUF_PIXELBUF_H
 
-
 const mp_obj_type_t pixelbuf_pixelbuf_type;
 
 typedef struct {
@@ -35,11 +34,14 @@ typedef struct {
     size_t pixels;
     size_t bytes;
     size_t bpp;
+    size_t pixel_step;
     size_t byteorder;
     mp_obj_t bytearray;
     mp_obj_t rawbytearray;
     mp_float_t brightness;
     bool two_buffers;
+    size_t offset;
+    uint8_t dotstar_mode;
     uint8_t *rawbuf;
     uint8_t *buf;
 } pixelbuf_pixelbuf_obj_t;
