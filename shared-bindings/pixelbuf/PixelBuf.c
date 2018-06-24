@@ -353,8 +353,8 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
         } else {
             // Single index rather than slice.
             size_t index = mp_get_index(self->base.type, self->pixels, index_in, false);
-            size_t offset = (index * self->pixel_step) + self->offset;
-            if (offset + self->pixel_step > self->bytes) 
+            size_t offset = (index * self->pixel_step);
+            if (offset > self->bytes) 
                 mp_raise_IndexError("Pixel beyond bounds of buffer");
             uint8_t *pixelstart = (uint8_t *)(self->two_buffers ? self->rawbuf : self->buf) + offset;
             if (value == MP_OBJ_SENTINEL) {
