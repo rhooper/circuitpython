@@ -41,7 +41,7 @@ typedef struct {
     mp_float_t brightness;
     bool two_buffers;
     size_t offset;
-    uint8_t dotstar_mode;
+    bool dotstar_mode;
     uint8_t *rawbuf;
     uint8_t *buf;
 } pixelbuf_pixelbuf_obj_t;

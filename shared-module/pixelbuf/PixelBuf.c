@@ -71,10 +71,12 @@ void pixelbuf_set_pixel(uint8_t *buf, mp_obj_t *item, uint byteorder, uint bpp, 
         buf[pixelbuf_byteorder_lookup[byteorder].b] = mp_obj_get_int_truncated(items[PIXEL_B]);
         if (len > 3) {
             if (dotstar) {
-                *(buf-1) = DOTSTAR_BRIGHTNESS(mp_obj_get_float(items[PIXEL_W]));
+                *(buf-1) = DOTSTAR_LED_START | DOTSTAR_BRIGHTNESS(mp_obj_get_float(items[PIXEL_W]));
             } else {
                 buf[pixelbuf_byteorder_lookup[byteorder].w] = mp_obj_get_int_truncated(items[PIXEL_W]);
             }
+        } else if (dotstar) {
+            *(buf-1) = DOTSTAR_LED_START_FULL_BRIGHT;
         }
     }
 }

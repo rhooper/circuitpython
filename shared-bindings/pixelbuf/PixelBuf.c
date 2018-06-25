@@ -114,32 +114,36 @@ STATIC mp_obj_t pixelbuf_pixelbuf_make_new(const mp_obj_type_t *type, size_t n_a
     self->bytearray = args[ARG_buf].u_obj;
     self->two_buffers = two_buffers;
     self->offset = args[ARG_offset].u_int;
-    self->dotstar_mode = args[ARG_dotstar].u_bool ? (bpp == 3 ? dotstar_rgb : dotstar_rgb_brightness) : dotstar_off;
+    self->dotstar_mode = args[ARG_dotstar].u_bool;
     self->buf = bufinfo.buf;
     self->buf += self->offset;
     self->rawbuf = two_buffers ? rawbufinfo.buf : NULL;
-    self->rawbuf += self->offset;
+    if (self->rawbuf)
+        self->rawbuf += self->offset;
     self->pixel_step = effective_bpp;  
 
     if (args[ARG_brightness].u_obj == mp_const_none) {
         self->brightness = 1.0;
     } else {
         self->brightness = mp_obj_get_float(args[ARG_brightness].u_obj);
+        if (self->brightness < 0)
+            self->brightness = 0;
+        else if (self->brightness > 1)
+            self->brightness = 1;
     }
     
-    if (self->dotstar_mode != dotstar_off) { 
+    if (self->dotstar_mode) { 
         // Offset the buffer by 1 in dotstar mode, as the dotstar needs a start byte with the start
         // bits and brightness bits.
-        // Fill the dotstar start bits
-        float initial_brightness = self->dotstar_mode == dotstar_rgb_brightness ? self->brightness : 1;
         for (uint i = 0; i < self->pixels * 4; i += 4) {
-            self->buf[i] = DOTSTAR_LED_START | DOTSTAR_BRIGHTNESS(initial_brightness);
+            self->buf[i] = DOTSTAR_LED_START_FULL_BRIGHT;
             if (two_buffers) {
-                self->rawbuf[i] = DOTSTAR_LED_START | DOTSTAR_BRIGHTNESS(initial_brightness);
+                self->rawbuf[i] = DOTSTAR_LED_START_FULL_BRIGHT;
             }
         }
         self->buf += 1;
-        self->bpp = 3; // Always 3 bpp (RGB) in DotStar modes
+        self->rawbuf += 1;
+        self->bpp = 3; // Always 3 bpp (RGB) in DotStar mode
     }
 
     if (two_buffers) {
@@ -204,12 +208,19 @@ const mp_obj_property_t pixelbuf_pixelbuf_brightness_obj = {
 };
 
 void pixelbuf_recalculate_brightness(pixelbuf_pixelbuf_obj_t *self) {
+    uint8_t *buf = (uint8_t *)self->buf;
+    uint8_t *rawbuf = (uint8_t *)self->rawbuf;
+    if (self->dotstar_mode) {
+        buf--;
+        rawbuf--;
+    }
     for (uint i = 0; i < self->bytes; i++) {
-       if (self->dotstar_mode > 0 && i % 4 == 0) {
-           self->buf[i] = self->rawbuf[i];  // copy dotstar start bits unmodified
-       } else {
-           self->buf[i] = self->rawbuf[i] * self->brightness;
-       }
+        // Don't adjust start/brightness bytes in dotstar mode
+        if (self->dotstar_mode && (i % 4 == 0)) {
+            buf[i] = rawbuf[i];
+        } else {
+            buf[i] = rawbuf[i] * self->brightness;
+        }
     }
 }
 
@@ -323,15 +334,17 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                         if (MP_OBJ_IS_TYPE(value, &mp_type_list) ||
                                 MP_OBJ_IS_TYPE(value, &mp_type_tuple) ||
                                 MP_OBJ_IS_INT(value)) {
-                            pixelbuf_set_pixel(destbuf + (i * self->pixel_step), item, self->byteorder, self->bpp,
-                                               self->dotstar_mode == dotstar_rgb_brightness);
+                            pixelbuf_set_pixel(destbuf + (i * self->pixel_step), item, self->byteorder, self->bpp, 
+                                               self->dotstar_mode);
                             if (self->two_buffers) {
+                                if (self->dotstar_mode)
+                                    *(adjustedbuf-1) = *(destbuf-1);
                                 for (uint j = 0; j < self->bpp; j++) {
-                                    adjustedbuf[(i * self->bpp) + j] = (destbuf[(i * self->bpp) + j] * self->brightness);
+                                    adjustedbuf[(i * self->pixel_step) + j] = (destbuf[(i * self->pixel_step) + j] * self->brightness);
                                 }
                             } else {
                                 for (uint j = 0; j < self->bpp; j++) {
-                                    destbuf[(i * self->bpp) + j] = (destbuf[(i * self->bpp) + j] * self->brightness);
+                                    destbuf[(i * self->pixel_step) + j] = (destbuf[(i * self->pixel_step) + j] * self->brightness);
                                 }
                             }
                         }
@@ -362,11 +375,11 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                 return pixelbuf_get_pixel(pixelstart, self->byteorder, self->bpp);
             } else {
                 // store
-                // TODO dotstar mode
-                pixelbuf_set_pixel(pixelstart, value, self->byteorder, self->bpp, 
-                                   self->dotstar_mode == dotstar_rgb_brightness);
+                pixelbuf_set_pixel(pixelstart, value, self->byteorder, self->bpp, self->dotstar_mode);
                 if (self->two_buffers) {
                     uint8_t *adjustedstart = self->buf + offset;
+                    if (self->dotstar_mode)
+                        *(adjustedstart-1) = *(pixelstart-1);
                     for (uint j = 0; j < self->bpp; j++) {
                         adjustedstart[j] = (pixelstart[j] * self->brightness);
                     }
