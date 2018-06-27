@@ -101,3 +101,31 @@ mp_obj_t *pixelbuf_get_pixel(uint8_t *buf, uint byteorder, uint bpp) {
     return mp_obj_new_tuple(bpp, elems);
 }
 
+mp_obj_t *color_wheel(float pos) {
+    mp_obj_t tuple[3];
+    uint8_t colors[3];
+
+    if (pos < 0 || pos > 255) {
+        colors[0] = 0;
+        colors[1] = 0;
+        colors[2] = 0;
+    } else if (pos < 85) {
+        colors[0] = pos * 3;
+        colors[1] = 255 - (pos * 3);
+        colors[2] = 0;
+    } else if (pos < 170) {
+        pos -= 85;
+        colors[0] = 255 - (pos * 3);
+        colors[1] = 0;
+        colors[2] = pos * 3;
+    } else {
+        pos -= 170;
+        colors[0] = 0;
+        colors[1] = pos * 3;
+        colors[2] = 255 - (pos * 3);
+    }
+    tuple[0] = mp_obj_new_int(colors[0]);
+    tuple[1] = mp_obj_new_int(colors[1]);
+    tuple[2] = mp_obj_new_int(colors[2]);
+    return mp_obj_new_tuple(3, tuple);
+}

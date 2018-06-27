@@ -52,5 +52,6 @@ void pixelbuf_set_pixel(uint8_t *buf, mp_obj_t *item, uint byteorder, uint bpp, 
 mp_obj_t *pixelbuf_get_pixel(uint8_t *buf, uint byteorder, uint bpp);
 mp_obj_t *pixelbuf_get_pixel_array(uint8_t *buf, uint len, uint byteorder, uint bpp);
 void pixelbuf_set_pixel_int(uint8_t *buf, mp_int_t value, uint byteorder, uint bpp);
+mp_obj_t *color_wheel(float pos);
 
 #endif
