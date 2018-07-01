@@ -27,17 +27,10 @@
 
 #include "py/obj.h"
 #include "py/objarray.h"
+#include "../../shared-bindings/pixelbuf/types.h"
 
 #ifndef PIXELBUF_SHARED_MODULE_H
 #define PIXELBUF_SHARED_MODULE_H
-
-
-#define BYTEORDER_RGB 0
-#define BYTEORDER_RBG 1
-#define BYTEORDER_GRB 2
-#define BYTEORDER_GBR 3
-#define BYTEORDER_BRG 4
-#define BYTEORDER_BGR 5
 
 #define PIXEL_R 0
 #define PIXEL_G 1
@@ -48,10 +41,9 @@
 #define DOTSTAR_BRIGHTNESS(brightness) ((32 - (uint8_t)(32 - brightness * 31)) & 0b00011111)
 #define DOTSTAR_LED_START_FULL_BRIGHT 0xFF
 
-void pixelbuf_set_pixel(uint8_t *buf, mp_obj_t *item, uint byteorder, uint bpp, bool dotstar);
-mp_obj_t *pixelbuf_get_pixel(uint8_t *buf, uint byteorder, uint bpp);
-mp_obj_t *pixelbuf_get_pixel_array(uint8_t *buf, uint len, uint byteorder, uint bpp);
-void pixelbuf_set_pixel_int(uint8_t *buf, mp_int_t value, uint byteorder, uint bpp);
-mp_obj_t *color_wheel(float pos);
+void pixelbuf_set_pixel(uint8_t *buf, mp_obj_t *item, pixelbuf_rgbw_obj_t *byteorder, bool dotstar);
+mp_obj_t *pixelbuf_get_pixel(uint8_t *buf, pixelbuf_rgbw_obj_t *byteorder);
+mp_obj_t *pixelbuf_get_pixel_array(uint8_t *buf, uint len, pixelbuf_rgbw_obj_t *byteorder, uint8_t step);
+void pixelbuf_set_pixel_int(uint8_t *buf, mp_int_t value, pixelbuf_rgbw_obj_t *byteorder);
 
 #endif

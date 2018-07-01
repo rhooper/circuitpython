@@ -34,8 +34,11 @@
 #include <string.h>
 
 #include "PixelBuf.h"
+#include "shared-bindings/pixelbuf/types.h"
 #include "../../shared-module/pixelbuf/PixelBuf.h"
 
+extern const pixelbuf_rgbw_obj_t byteorder_BGR;
+extern const mp_obj_type_t pixelbuf_byteorder_type;
 
 //| .. currentmodule:: pixelbuf
 //|
@@ -60,7 +63,7 @@
 //|
 //|   :param ~int size: Number of pixels
 //|   :param ~bytearray buf: Bytearray to store pixel data in
-//|   :param ~pixelbuf.BGR byteorder: Byte order
+//|   :param ~pixelbuf.ByteOrder byteorder: Byte order constant from `pixelbuf`
 //|   :param ~int bpp: Bytes per pixel
 //|   :param ~float brightness: Brightness (0 to 1)
 //|   :param ~bytearray rawbuf: Bytearray to store raw pixel colors in
@@ -75,7 +78,7 @@ STATIC mp_obj_t pixelbuf_pixelbuf_make_new(const mp_obj_type_t *type, size_t n_a
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_size, MP_ARG_REQUIRED | MP_ARG_INT },
         { MP_QSTR_buf, MP_ARG_REQUIRED | MP_ARG_OBJ },
-        { MP_QSTR_byteorder, MP_ARG_INT, { .u_int = BYTEORDER_BGR } },
+        { MP_QSTR_byteorder, MP_ARG_INT, { .u_obj = mp_const_none } },
         { MP_QSTR_bpp, MP_ARG_INT, { .u_int = 3 } },
         { MP_QSTR_brightness, MP_ARG_OBJ, { .u_obj = mp_const_none } },
         { MP_QSTR_rawbuf, MP_ARG_OBJ, { .u_obj = mp_const_none } },
@@ -90,6 +93,12 @@ STATIC mp_obj_t pixelbuf_pixelbuf_make_new(const mp_obj_type_t *type, size_t n_a
     size_t size = args[ARG_size].u_int * effective_bpp;
 
     mp_buffer_info_t bufinfo, rawbufinfo;
+
+    if (args[ARG_byteorder].u_obj != mp_const_none && 
+        !MP_OBJ_IS_TYPE(args[ARG_byteorder].u_obj, &pixelbuf_byteorder_type)) 
+    {
+        mp_raise_TypeError("byteorder is not an instance of ByteOrder");
+    }
 
     mp_get_buffer_raise(args[ARG_buf].u_obj, &bufinfo, MP_BUFFER_READ | MP_BUFFER_WRITE);
     bool two_buffers = args[ARG_rawbuf].u_obj != mp_const_none;
@@ -110,7 +119,11 @@ STATIC mp_obj_t pixelbuf_pixelbuf_make_new(const mp_obj_type_t *type, size_t n_a
     self->pixels = args[ARG_size].u_int;
     self->bpp = bpp;
     self->bytes = size;
-    self->byteorder = args[ARG_byteorder].u_int;
+    if (args[ARG_byteorder].u_obj == mp_const_none) {
+        self->byteorder = MP_OBJ_FROM_PTR(&byteorder_BGR);
+    } else {
+        self->byteorder = args[ARG_byteorder].u_obj;
+    }
     self->bytearray = args[ARG_buf].u_obj;
     self->two_buffers = two_buffers;
     self->offset = args[ARG_offset].u_int;
@@ -247,7 +260,7 @@ const mp_obj_property_t pixelbuf_pixelbuf_buf_obj = {
 //|
 STATIC mp_obj_t pixelbuf_pixelbuf_obj_get_byteorder(mp_obj_t self_in) {
     pixelbuf_pixelbuf_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    return mp_obj_new_int_from_uint(self->byteorder);
+    return self->byteorder;
 }
 MP_DEFINE_CONST_FUN_OBJ_1(pixelbuf_pixelbuf_get_byteorder_obj, pixelbuf_pixelbuf_obj_get_byteorder);
 
@@ -269,12 +282,6 @@ STATIC mp_obj_t pixelbuf_pixelbuf_unary_op(mp_unary_op_t op, mp_obj_t self_in) {
 
 
 STATIC const mp_rom_map_elem_t pixelbuf_pixelbuf_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR_RGB), MP_ROM_INT(BYTEORDER_RGB) },
-    { MP_ROM_QSTR(MP_QSTR_RBG), MP_ROM_INT(BYTEORDER_RBG) },
-    { MP_ROM_QSTR(MP_QSTR_GRB), MP_ROM_INT(BYTEORDER_GRB) },
-    { MP_ROM_QSTR(MP_QSTR_GBR), MP_ROM_INT(BYTEORDER_GBR) },
-    { MP_ROM_QSTR(MP_QSTR_BRG), MP_ROM_INT(BYTEORDER_BRG) },
-    { MP_ROM_QSTR(MP_QSTR_BGR), MP_ROM_INT(BYTEORDER_BGR) },
     { MP_ROM_QSTR(MP_QSTR_bpp), MP_ROM_PTR(&pixelbuf_pixelbuf_bpp_obj)},
     { MP_ROM_QSTR(MP_QSTR_brightness), MP_ROM_PTR(&pixelbuf_pixelbuf_brightness_obj)},
     { MP_ROM_QSTR(MP_QSTR_buf), MP_ROM_PTR(&pixelbuf_pixelbuf_buf_obj)},
@@ -334,8 +341,7 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
                         if (MP_OBJ_IS_TYPE(value, &mp_type_list) ||
                                 MP_OBJ_IS_TYPE(value, &mp_type_tuple) ||
                                 MP_OBJ_IS_INT(value)) {
-                            pixelbuf_set_pixel(destbuf + (i * self->pixel_step), item, self->byteorder, self->bpp, 
-                                               self->dotstar_mode);
+                            pixelbuf_set_pixel(destbuf + (i * self->pixel_step), item, self->byteorder, self->dotstar_mode);
                             if (self->two_buffers) {
                                 if (self->dotstar_mode)
                                     *(adjustedbuf-1) = *(destbuf-1);
@@ -372,10 +378,10 @@ STATIC mp_obj_t pixelbuf_pixelbuf_subscr(mp_obj_t self_in, mp_obj_t index_in, mp
             uint8_t *pixelstart = (uint8_t *)(self->two_buffers ? self->rawbuf : self->buf) + offset;
             if (value == MP_OBJ_SENTINEL) {
                 // load
-                return pixelbuf_get_pixel(pixelstart, self->byteorder, self->bpp);
+                return pixelbuf_get_pixel(pixelstart, self->byteorder);
             } else {
                 // store
-                pixelbuf_set_pixel(pixelstart, value, self->byteorder, self->bpp, self->dotstar_mode);
+                pixelbuf_set_pixel(pixelstart, value, self->byteorder, self->dotstar_mode);
                 if (self->two_buffers) {
                     uint8_t *adjustedstart = self->buf + offset;
                     if (self->dotstar_mode)

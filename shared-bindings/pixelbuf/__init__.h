@@ -24,7 +24,9 @@
  * THE SOFTWARE.
  */
 
-#ifndef CIRCUITPYTHON_INIT_H
-#define CIRCUITPYTHON_INIT_H
+#ifndef CP_SHARED_BINDINGS_PIXELBUF_INIT_H
+#define CP_SHARED_BINDINGS_PIXELBUF_INIT_H
 
-#endif //CIRCUITPYTHON_INIT_H
+STATIC void pixelbuf_byteorder_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind);
+
+#endif //CP_SHARED_BINDINGS_PIXELBUF_INIT_H

@@ -24,8 +24,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef MICROPY_INCLUDED_SHARED_BINDINGS_PIXELBUF_PIXELBUF_H
-#define MICROPY_INCLUDED_SHARED_BINDINGS_PIXELBUF_PIXELBUF_H
+#ifndef CP_SHARED_BINDINGS_PIXELBUF_PIXELBUF_H
+#define CP_SHARED_BINDINGS_PIXELBUF_PIXELBUF_H
 
 const mp_obj_type_t pixelbuf_pixelbuf_type;
 
@@ -35,7 +35,7 @@ typedef struct {
     size_t bytes;
     size_t bpp;
     size_t pixel_step;
-    size_t byteorder;
+    mp_obj_t byteorder;
     mp_obj_t bytearray;
     mp_obj_t rawbytearray;
     mp_float_t brightness;
@@ -48,4 +48,4 @@ typedef struct {
 
 void pixelbuf_recalculate_brightness(pixelbuf_pixelbuf_obj_t *self);
 
-#endif  // MICROPY_INCLUDED_SHARED_BINDINGS_PIXELBUF_PIXELBUF_H
+#endif  // CP_SHARED_BINDINGS_PIXELBUF_PIXELBUF_H
