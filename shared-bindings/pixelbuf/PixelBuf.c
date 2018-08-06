@@ -78,7 +78,7 @@ STATIC mp_obj_t pixelbuf_pixelbuf_make_new(const mp_obj_type_t *type, size_t n_a
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_size, MP_ARG_REQUIRED | MP_ARG_INT },
         { MP_QSTR_buf, MP_ARG_REQUIRED | MP_ARG_OBJ },
-        { MP_QSTR_byteorder, MP_ARG_INT, { .u_obj = mp_const_none } },
+        { MP_QSTR_byteorder, MP_ARG_OBJ, { .u_obj = mp_const_none } },
         { MP_QSTR_bpp, MP_ARG_INT, { .u_int = 3 } },
         { MP_QSTR_brightness, MP_ARG_OBJ, { .u_obj = mp_const_none } },
         { MP_QSTR_rawbuf, MP_ARG_OBJ, { .u_obj = mp_const_none } },
