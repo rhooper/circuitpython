@@ -81,13 +81,17 @@ PIXELBUF_BYTEORDER(GRBW, 4, 1, 0, 2, 3, true)
 PIXELBUF_BYTEORDER(GBRW, 4, 1, 2, 0, 3, true)
 PIXELBUF_BYTEORDER(BRGW, 4, 2, 0, 1, 3, true)
 PIXELBUF_BYTEORDER(BGRW, 4, 2, 1, 0, 3, true)
-// Alpha (Brightness) + RGB (eg Dotstar)
-PIXELBUF_BYTEORDER(ARGB, 4, 1, 2, 3, 0, false)
-PIXELBUF_BYTEORDER(ARBG, 4, 1, 3, 2, 0, false)
-PIXELBUF_BYTEORDER(AGRB, 4, 2, 1, 3, 0, false)
-PIXELBUF_BYTEORDER(AGBR, 4, 2, 3, 1, 0, false)
-PIXELBUF_BYTEORDER(ABRG, 4, 3, 1, 2, 0, false)
-PIXELBUF_BYTEORDER(ABGR, 4, 3, 2, 1, 0, false)
+
+// Luminosity + RGB (eg for Dotstar)
+// Luminosity chosen because the luminosity of a Dotstar at full bright
+// burns the eyes like looking at the Sun.
+// https://www.thesaurus.com/browse/luminosity?s=t
+PIXELBUF_BYTEORDER(LRGB, 4, 1, 2, 3, 0, false)
+PIXELBUF_BYTEORDER(LRBG, 4, 1, 3, 2, 0, false)
+PIXELBUF_BYTEORDER(LGRB, 4, 2, 1, 3, 0, false)
+PIXELBUF_BYTEORDER(LGBR, 4, 2, 3, 1, 0, false)
+PIXELBUF_BYTEORDER(LBRG, 4, 3, 1, 2, 0, false)
+PIXELBUF_BYTEORDER(LBGR, 4, 3, 2, 1, 0, false)
 
 STATIC const mp_rom_map_elem_t pixelbuf_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_pixelbuf) },
@@ -105,12 +109,12 @@ STATIC const mp_rom_map_elem_t pixelbuf_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_GBRW), MP_ROM_PTR(&byteorder_GBRW) },
     { MP_ROM_QSTR(MP_QSTR_BRGW), MP_ROM_PTR(&byteorder_BRGW) },
     { MP_ROM_QSTR(MP_QSTR_BGRW), MP_ROM_PTR(&byteorder_BGRW) },
-    { MP_ROM_QSTR(MP_QSTR_ARGB), MP_ROM_PTR(&byteorder_ARGB) },
-    { MP_ROM_QSTR(MP_QSTR_ARBG), MP_ROM_PTR(&byteorder_ARBG) },
-    { MP_ROM_QSTR(MP_QSTR_AGRB), MP_ROM_PTR(&byteorder_AGRB) },
-    { MP_ROM_QSTR(MP_QSTR_AGBR), MP_ROM_PTR(&byteorder_AGBR) },
-    { MP_ROM_QSTR(MP_QSTR_ABRG), MP_ROM_PTR(&byteorder_ABRG) },
-    { MP_ROM_QSTR(MP_QSTR_ABGR), MP_ROM_PTR(&byteorder_ABGR) },
+    { MP_ROM_QSTR(MP_QSTR_LRGB), MP_ROM_PTR(&byteorder_LRGB) },
+    { MP_ROM_QSTR(MP_QSTR_LRBG), MP_ROM_PTR(&byteorder_LRBG) },
+    { MP_ROM_QSTR(MP_QSTR_LGRB), MP_ROM_PTR(&byteorder_LGRB) },
+    { MP_ROM_QSTR(MP_QSTR_LGBR), MP_ROM_PTR(&byteorder_LGBR) },
+    { MP_ROM_QSTR(MP_QSTR_LBRG), MP_ROM_PTR(&byteorder_LBRG) },
+    { MP_ROM_QSTR(MP_QSTR_LBGR), MP_ROM_PTR(&byteorder_LBGR) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(pixelbuf_module_globals, pixelbuf_module_globals_table);
