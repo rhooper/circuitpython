@@ -85,7 +85,7 @@ PIXELBUF_BYTEORDER(BGRW, 4, 2, 1, 0, 3, true)
 // Luminosity + RGB (eg for Dotstar)
 // Luminosity chosen because the luminosity of a Dotstar at full bright
 // burns the eyes like looking at the Sun.
-// https://www.thesaurus.com/browse/luminosity?s=t
+// https://www.dictionary.com/browse/luminosity
 PIXELBUF_BYTEORDER(LRGB, 4, 1, 2, 3, 0, false)
 PIXELBUF_BYTEORDER(LRBG, 4, 1, 3, 2, 0, false)
 PIXELBUF_BYTEORDER(LGRB, 4, 2, 1, 3, 0, false)
