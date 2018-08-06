@@ -3,7 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2015 Glenn Ruben Bakke
+ * Copyright (c) 2013, 2014 Damien P. George
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,49 +24,20 @@
  * THE SOFTWARE.
  */
 
-#include <errno.h>
-#include <string.h>
+#ifndef __MICROPY_INCLUDED_NRF5_PIN_H__
+#define __MICROPY_INCLUDED_NRF5_PIN_H__
 
-#include "py/mpstate.h"
-#include "py/mphal.h"
-#include "py/mperrno.h"
-#include "hal_uart.h"
+#include "py/obj.h"
 
-#define UART_INSTANCE   UART_BASE(0)
+typedef struct {
+    mp_obj_base_t base;
+    qstr name;
 
-#if (MICROPY_PY_BLE_NUS == 0)
-int mp_hal_stdin_rx_chr(void) {
-    for (;;) {
-        if ( hal_uart_available(UART_INSTANCE) ) {
-          uint8_t ch;
-          hal_uart_char_read(UART_INSTANCE, &ch);
-          return (int) ch;
-        }
-    }
+    uint32_t port        : 1;
+    uint32_t pin         : 5; // Some ARM processors use 32 bits/PORT
+    uint32_t adc_channel : 4; // 0 is no ADC, ADC channel from 1 to 8
+} pin_obj_t;
 
-    return 0;
-}
+extern const mp_obj_type_t mcu_pin_type;
 
-bool mp_hal_stdin_any(void) {
-  return hal_uart_available(UART_INSTANCE);
-}
-
-void mp_hal_stdout_tx_strn(const char *str, mp_uint_t len) {
-  while(len--) {
-    hal_uart_char_write(UART_INSTANCE, *str++);
-  }
-}
-
-void mp_hal_stdout_tx_strn_cooked(const char *str, mp_uint_t len) {
-  while(len--){
-    if (*str == '\n') {
-      hal_uart_char_write(UART_INSTANCE, '\r');
-    }
-    hal_uart_char_write(UART_INSTANCE, *str++);
-  }
-}
-#endif
-
-void mp_hal_stdout_tx_str(const char *str) {
-    mp_hal_stdout_tx_strn(str, strlen(str));
-}
+#endif // __MICROPY_INCLUDED_NRF5_PIN_H__

@@ -68,3 +68,9 @@
 [submodule "frozen/Adafruit_CircuitPython_DotStar"]
 	path = frozen/Adafruit_CircuitPython_DotStar
 	url = https://github.com/adafruit/Adafruit_CircuitPython_DotStar.git
+[submodule "ports/atmel-samd/peripherals"]
+	path = ports/atmel-samd/peripherals
+	url = https://github.com/adafruit/samd-peripherals.git
+[submodule "ports/nrf/nrfx"]
+	path = ports/nrf/nrfx
+	url = https://github.com/NordicSemiconductor/nrfx.git
