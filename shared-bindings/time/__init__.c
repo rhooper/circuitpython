@@ -57,6 +57,21 @@ STATIC mp_obj_t time_monotonic(void) {
 }
 MP_DEFINE_CONST_FUN_OBJ_0(time_monotonic_obj, time_monotonic);
 
+
+//| def monotonic_ms() -> float:
+//|     """Returns an always increasing value of time with an unknown reference
+//|     point. Only use it to compare against other values from `monotonic_ms`.
+//|
+//|     :return: the current monotonic time
+//|     :rtype: float"""
+//|     ...
+//|
+STATIC mp_obj_t time_monotonic_ms(void) {
+    uint32_t time32 = common_hal_time_monotonic();
+    return mp_obj_new_int(time32);
+}
+MP_DEFINE_CONST_FUN_OBJ_0(time_monotonic_ms_obj, time_monotonic_ms);
+
 //| def sleep(seconds: float) -> None:
 //|     """Sleep for a given number of seconds.
 //|
@@ -299,6 +314,7 @@ STATIC const mp_rom_map_elem_t time_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_time) },
 
     { MP_ROM_QSTR(MP_QSTR_monotonic), MP_ROM_PTR(&time_monotonic_obj) },
+    { MP_ROM_QSTR(MP_QSTR_monotonic_ms), MP_ROM_PTR(&time_monotonic_ms_obj) },
     { MP_ROM_QSTR(MP_QSTR_sleep), MP_ROM_PTR(&time_sleep_obj) },
     #if MICROPY_PY_COLLECTIONS
     { MP_ROM_QSTR(MP_QSTR_struct_time), MP_ROM_PTR(&struct_time_type_obj) },
