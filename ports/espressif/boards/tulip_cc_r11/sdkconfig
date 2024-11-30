@@ -1,0 +1,67 @@
+#
+# Espressif IoT Development Framework Configuration
+#
+#
+# Bootloader config
+#
+# CONFIG_BOOTLOADER_LOG_LEVEL_NONE is not set
+CONFIG_BOOTLOADER_LOG_LEVEL_INFO=y
+CONFIG_BOOTLOADER_LOG_LEVEL=3
+# end of Bootloader config
+
+#
+# Compiler options
+#
+CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_ENABLE=y
+# CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_DISABLE is not set
+CONFIG_COMPILER_OPTIMIZATION_ASSERTION_LEVEL=2
+# CONFIG_COMPILER_OPTIMIZATION_CHECKS_SILENT is not set
+# end of Compiler options
+
+#
+# Component config
+#
+#
+# Common ESP-related
+#
+CONFIG_ESP_ERR_TO_NAME_LOOKUP=y
+# end of Common ESP-related
+
+#
+# ESP System Settings
+#
+CONFIG_ESP_SYSTEM_PANIC_PRINT_HALT=y
+# CONFIG_ESP_SYSTEM_PANIC_SILENT_REBOOT is not set
+CONFIG_ESP_CONSOLE_UART_DEFAULT=y
+# CONFIG_ESP_CONSOLE_NONE is not set
+CONFIG_ESP_CONSOLE_UART=y
+CONFIG_ESP_CONSOLE_UART_NUM=0
+CONFIG_ESP_CONSOLE_ROM_SERIAL_PORT_NUM=0
+CONFIG_ESP_CONSOLE_UART_BAUDRATE=115200
+CONFIG_ESP_PANIC_HANDLER_IRAM=y
+# end of ESP System Settings
+
+#
+# Hardware Abstraction Layer (HAL) and Low Level (LL)
+#
+CONFIG_HAL_DEFAULT_ASSERTION_LEVEL=2
+# end of Hardware Abstraction Layer (HAL) and Low Level (LL)
+
+#
+# Log output
+#
+# CONFIG_LOG_DEFAULT_LEVEL_NONE is not set
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+CONFIG_LOG_DEFAULT_LEVEL=3
+CONFIG_LOG_MAXIMUM_LEVEL=3
+# end of Log output
+
+#
+# LWIP
+#
+CONFIG_LWIP_ESP_LWIP_ASSERT=y
+# end of LWIP
+
+# end of Component config
+
+# end of Espressif IoT Development Framework Configuration
