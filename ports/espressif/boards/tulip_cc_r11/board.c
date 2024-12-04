@@ -42,19 +42,10 @@ static const mcu_pin_obj_t *red_pins[] = {
 static void display_init(void) {
 
     mp_int_t height = 0, width = 0, frequency = 0;
-    os_getenv_err_t result;
 
-    result = common_hal_os_getenv_int("CIRCUITPY_DISPLAY_WIDTH", &width);
-    if (result == GETENV_OK && width == 800) {
-        width = 800;
-        height = 480;
-        frequency = 6500000;
-
-    } else {
-        width = 1024;
-        height = 600;
-        frequency = 10000000;
-    }
+    width = TULIP_DISPLAY_WIDTH;
+    height = TULIP_DISPLAY_HEIGHT;
+    frequency = TULIP_DISPLAY_FREQUENCY;
 
     dotclockframebuffer_framebuffer_obj_t *framebuffer = &allocate_display_bus_or_raise()->dotclock;
     framebuffer->base.type = &dotclockframebuffer_framebuffer_type;

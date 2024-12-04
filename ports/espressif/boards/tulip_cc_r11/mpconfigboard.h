@@ -10,14 +10,17 @@
 // UART pins attached to the USB-serial converter chip
 #define CIRCUITPY_CONSOLE_UART_TX (&pin_GPIO43)
 #define CIRCUITPY_CONSOLE_UART_RX (&pin_GPIO44)
+#define CIRCUITPY_BOARD_UART        (1)
+#define CIRCUITPY_BOARD_UART_PIN    {{.tx = &pin_GPIO43, .rx = &pin_GPIO44}}
 
 #define CIRCUITPY_BOARD_I2C         (1)
 #define CIRCUITPY_BOARD_I2C_PIN     {{.scl = &pin_GPIO18, .sda = &pin_GPIO17}}
 
+#define DOUBLE_TAP_PIN              (&pin_GPIO0)
 //#define CONFIG_I2S_LRCLK 2
 //#define CONFIG_I2S_BCLK 8
 
-#define TULIP_DISPLAY_FREQUENCY 16000000
+#define TULIP_DISPLAY_FREQUENCY 10000000
 #define TULIP_DISPLAY_WIDTH     1024
 #define TULIP_DISPLAY_HEIGHT    600
 

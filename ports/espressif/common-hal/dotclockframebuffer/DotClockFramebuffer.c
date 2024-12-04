@@ -60,22 +60,39 @@ static int valid_pin(const mcu_pin_obj_t *pin, qstr name) {
     return result;
 }
 
-void common_hal_dotclockframebuffer_framebuffer_construct(dotclockframebuffer_framebuffer_obj_t *self,
-    const mcu_pin_obj_t *de,
-    const mcu_pin_obj_t *vsync,
-    const mcu_pin_obj_t *hsync,
-    const mcu_pin_obj_t *dclk,
-    const mcu_pin_obj_t **red, uint8_t num_red,
-    const mcu_pin_obj_t **green, uint8_t num_green,
-    const mcu_pin_obj_t **blue, uint8_t num_blue,
-    int frequency, int width, int height,
-    int hsync_pulse_width, int hsync_back_porch, int hsync_front_porch, bool hsync_idle_low,
-    int vsync_pulse_width, int vsync_back_porch, int vsync_front_porch, bool vsync_idle_low,
-    bool de_idle_high, bool pclk_active_high, bool pclk_idle_high, int overscan_left) {
-
-    if (num_red != 5 || num_green != 6 || num_blue != 5) {
-        mp_raise_ValueError(MP_ERROR_TEXT("Must provide 5/6/5 RGB pins"));
+static void allocate_gpio_range(
+    const mcu_pin_obj_t** pins,
+    const int num_pins,
+    const int expected_pins,
+    esp_lcd_rgb_panel_config_t* cfg,
+    int *gpio_num,
+    qstr pin_group_name
+    )
+{
+    for (int i = 0; i < expected_pins; i++, (*gpio_num)++) {
+        cfg->data_gpio_nums[*gpio_num] = (i < num_pins ? valid_pin(pins[i], pin_group_name) : GPIO_NUM_NC);
     }
+}
+
+void common_hal_dotclockframebuffer_framebuffer_construct(dotclockframebuffer_framebuffer_obj_t *self,
+                                                          const mcu_pin_obj_t *de,
+                                                          const mcu_pin_obj_t *vsync,
+                                                          const mcu_pin_obj_t *hsync,
+                                                          const mcu_pin_obj_t *dclk,
+                                                          const mcu_pin_obj_t **red, uint8_t num_red,
+                                                          const mcu_pin_obj_t **green, uint8_t num_green,
+                                                          const mcu_pin_obj_t **blue, uint8_t num_blue,
+                                                          int frequency, int width, int height,
+                                                          int hsync_pulse_width, int hsync_back_porch, int hsync_front_porch, bool hsync_idle_low,
+                                                          int vsync_pulse_width, int vsync_back_porch, int vsync_front_porch, bool vsync_idle_low,
+                                                          bool de_idle_high, bool pclk_active_high, bool pclk_idle_high, int overscan_left) {
+
+    const int expected_red = 5;
+    const int expected_green = 6;
+    const int expected_blue = 5;
+    // if (num_red != 5 || num_green != 6 || num_blue != 5) {
+    //     mp_raise_ValueError(MP_ERROR_TEXT("Must provide 5/6/5 RGB pins"));
+    // }
 
     claim_and_record(de, &self->used_pins_mask);
     claim_and_record(vsync, &self->used_pins_mask);
@@ -117,24 +134,28 @@ void common_hal_dotclockframebuffer_framebuffer_construct(dotclockframebuffer_fr
     cfg->pclk_gpio_num = valid_pin(dclk, MP_QSTR_dclk);
     cfg->clk_src = LCD_CLK_SRC_DEFAULT;
 
-    cfg->data_gpio_nums[0] = valid_pin(blue[0], MP_QSTR_blue);
-    cfg->data_gpio_nums[1] = valid_pin(blue[1], MP_QSTR_blue);
-    cfg->data_gpio_nums[2] = valid_pin(blue[2], MP_QSTR_blue);
-    cfg->data_gpio_nums[3] = valid_pin(blue[3], MP_QSTR_blue);
-    cfg->data_gpio_nums[4] = valid_pin(blue[4], MP_QSTR_blue);
+    int gpio_num = 0;
+    allocate_gpio_range(blue, num_blue, expected_blue, cfg, &gpio_num, MP_QSTR_blue);
+    // cfg->data_gpio_nums[0] = valid_pin(blue[0], MP_QSTR_blue);
+    // cfg->data_gpio_nums[1] = valid_pin(blue[1], MP_QSTR_blue);
+    // cfg->data_gpio_nums[2] = valid_pin(blue[2], MP_QSTR_blue);
+    // cfg->data_gpio_nums[3] = valid_pin(blue[3], MP_QSTR_blue);
+    // cfg->data_gpio_nums[4] = valid_pin(blue[4], MP_QSTR_blue);
 
-    cfg->data_gpio_nums[5] = valid_pin(green[0], MP_QSTR_green);
-    cfg->data_gpio_nums[6] = valid_pin(green[1], MP_QSTR_green);
-    cfg->data_gpio_nums[7] = valid_pin(green[2], MP_QSTR_green);
-    cfg->data_gpio_nums[8] = valid_pin(green[3], MP_QSTR_green);
-    cfg->data_gpio_nums[9] = valid_pin(green[4], MP_QSTR_green);
-    cfg->data_gpio_nums[10] = valid_pin(green[5], MP_QSTR_green);
+    allocate_gpio_range(green, num_green, expected_green, cfg, &gpio_num, MP_QSTR_green);
+    // cfg->data_gpio_nums[5] = valid_pin(green[0], MP_QSTR_green);
+    // cfg->data_gpio_nums[6] = valid_pin(green[1], MP_QSTR_green);
+    // cfg->data_gpio_nums[7] = valid_pin(green[2], MP_QSTR_green);
+    // cfg->data_gpio_nums[8] = valid_pin(green[3], MP_QSTR_green);
+    // cfg->data_gpio_nums[9] = valid_pin(green[4], MP_QSTR_green);
+    // cfg->data_gpio_nums[10] = valid_pin(green[5], MP_QSTR_green);
 
-    cfg->data_gpio_nums[11] = valid_pin(red[0], MP_QSTR_red);
-    cfg->data_gpio_nums[12] = valid_pin(red[1], MP_QSTR_red);
-    cfg->data_gpio_nums[13] = valid_pin(red[2], MP_QSTR_red);
-    cfg->data_gpio_nums[14] = valid_pin(red[3], MP_QSTR_red);
-    cfg->data_gpio_nums[15] = valid_pin(red[4], MP_QSTR_red);
+    allocate_gpio_range(red, num_red, expected_red, cfg, &gpio_num, MP_QSTR_red);
+    // cfg->data_gpio_nums[11] = valid_pin(red[0], MP_QSTR_red);
+    // cfg->data_gpio_nums[12] = valid_pin(red[1], MP_QSTR_red);
+    // cfg->data_gpio_nums[13] = valid_pin(red[2], MP_QSTR_red);
+    // cfg->data_gpio_nums[14] = valid_pin(red[3], MP_QSTR_red);
+    // cfg->data_gpio_nums[15] = valid_pin(red[4], MP_QSTR_red);
 
     cfg->disp_gpio_num = GPIO_NUM_NC;
 
