@@ -180,8 +180,8 @@ static const mp_rom_obj_tuple_t tft_r_pins = {
         5,
         {
                 MP_ROM_PTR(&pin_GPIO45), // R3
-                MP_ROM_PTR(&pin_GPIO48), // R4
-                MP_ROM_PTR(&pin_GPIO47), // R5
+                MP_ROM_PTR(&pin_GPIO13), // R4
+                MP_ROM_PTR(&pin_GPIO10), // R5
                 MP_ROM_PTR(&pin_GPIO21), // R6
                 MP_ROM_PTR(&pin_GPIO14), // R7
         }
@@ -198,6 +198,7 @@ static const mp_rom_map_elem_t tft_pins_table[] = {
 };
 MP_DEFINE_CONST_DICT(tft_pins_dict, tft_pins_table);
 
+#define AS_MP_BOOL(val) ((val) ? mp_const_true : mp_const_false)
 static const mp_rom_map_elem_t timings1024_table[] = {
         { MP_ROM_QSTR(MP_QSTR_frequency), MP_ROM_INT(TULIP_DISPLAY_FREQUENCY) }, // nominal 16MHz, but display is unstable/tears at that frequency
         { MP_ROM_QSTR(MP_QSTR_width), MP_ROM_INT(TULIP_DISPLAY_WIDTH) },
@@ -205,14 +206,14 @@ static const mp_rom_map_elem_t timings1024_table[] = {
         { MP_ROM_QSTR(MP_QSTR_hsync_pulse_width), MP_ROM_INT(TULIP_DISPLAY_HSYNC_PULSE_WIDTH) },
         { MP_ROM_QSTR(MP_QSTR_hsync_front_porch), MP_ROM_INT(TULIP_DISPLAY_HSYNC_FRONT_PORCH) },
         { MP_ROM_QSTR(MP_QSTR_hsync_back_porch), MP_ROM_INT(TULIP_DISPLAY_HSYNC_BACK_PORCH) },
-        { MP_ROM_QSTR(MP_QSTR_hsync_idle_low), TULIP_DISPLAY_HSYNC_IDLE_LOW },
+        { MP_ROM_QSTR(MP_QSTR_hsync_idle_low), AS_MP_BOOL(TULIP_DISPLAY_HSYNC_IDLE_LOW) },
         { MP_ROM_QSTR(MP_QSTR_vsync_pulse_width), MP_ROM_INT(TULIP_DISPLAY_VSYNC_PULSE_WIDTH) },
         { MP_ROM_QSTR(MP_QSTR_vsync_front_porch), MP_ROM_INT(TULIP_DISPLAY_VSYNC_FRONT_PORCH) },
         { MP_ROM_QSTR(MP_QSTR_vsync_back_porch), MP_ROM_INT(TULIP_DISPLAY_VSYNC_BACK_PORCH) },
-        { MP_ROM_QSTR(MP_QSTR_vsync_idle_low), TULIP_DISPLAY_VSYNC_IDLE_LOW },
-        { MP_ROM_QSTR(MP_QSTR_de_idle_high), TULIP_DISPLAY_DE_IDLE_HIGH },
-        { MP_ROM_QSTR(MP_QSTR_pclk_active_high), TULIP_DISPLAY_PCLK_ACTIVE_HIGH },
-        { MP_ROM_QSTR(MP_QSTR_pclk_idle_high), TULIP_DISPLAY_PCLK_IDLE_HIGH },
+        { MP_ROM_QSTR(MP_QSTR_vsync_idle_low), AS_MP_BOOL(TULIP_DISPLAY_VSYNC_IDLE_LOW) },
+        { MP_ROM_QSTR(MP_QSTR_de_idle_high), AS_MP_BOOL(TULIP_DISPLAY_DE_IDLE_HIGH) },
+        { MP_ROM_QSTR(MP_QSTR_pclk_active_high), AS_MP_BOOL(TULIP_DISPLAY_PCLK_ACTIVE_HIGH) },
+        { MP_ROM_QSTR(MP_QSTR_pclk_idle_high), AS_MP_BOOL(TULIP_DISPLAY_PCLK_IDLE_HIGH) },
 };
 MP_DEFINE_CONST_DICT(timings1024_dict, timings1024_table);
 

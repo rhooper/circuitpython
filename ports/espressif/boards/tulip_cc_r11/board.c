@@ -33,8 +33,8 @@ static const mcu_pin_obj_t *green_pins[] = {
 
 static const mcu_pin_obj_t *red_pins[] = {
     &pin_GPIO45, // R3
-    &pin_GPIO48, // R4
-    &pin_GPIO47, // R5
+    &pin_GPIO13, // R4
+    &pin_GPIO10, // R5
     &pin_GPIO21, // R6
     &pin_GPIO14  // R7
 };
@@ -62,8 +62,15 @@ static void display_init(void) {
         frequency,        // Frequency
         width,            // width
         height,            // height
-        30, 16, 210, false, // horiz: pulse, back porch, front porch, idle low
-        13, 10, 22, false,  // vert: pulse, back porch, front porch, idle low
+        // horiz: pulse, back porch, front porch, idle low
+        TULIP_DISPLAY_HSYNC_PULSE_WIDTH,
+        TULIP_DISPLAY_HSYNC_FRONT_PORCH,
+        TULIP_DISPLAY_HSYNC_BACK_PORCH,
+        TULIP_DISPLAY_HSYNC_IDLE_LOW != mp_const_false,
+        TULIP_DISPLAY_VSYNC_PULSE_WIDTH,
+        TULIP_DISPLAY_VSYNC_FRONT_PORCH,
+        TULIP_DISPLAY_VSYNC_BACK_PORCH,
+        false,  // vert: pulse, back porch, front porch, idle low
         false,          // DE idle high
         false,          // pclk active high
         false,          // pclk idle high
