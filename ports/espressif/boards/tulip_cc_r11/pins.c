@@ -55,7 +55,7 @@
      1 D+  ->
      2 D-  ->
      3 GND
-     4 DTR -> RESET
+     4 DTR -> RESET IO0
      5 CTS
      6 RTS -> IO0
      7 VCC VBUS
@@ -220,6 +220,8 @@ MP_DEFINE_CONST_DICT(timings1024_dict, timings1024_table);
 static const mp_rom_map_elem_t board_module_globals_table[] = {
         CIRCUITPYTHON_BOARD_DICT_STANDARD_ITEMS
 
+        { MP_ROM_QSTR(MP_QSTR_BAT), MP_ROM_PTR(&pin_GPIO3) },
+
         { MP_ROM_QSTR(MP_QSTR_TFT_PINS), MP_ROM_PTR(&tft_pins_dict) },
         { MP_ROM_QSTR(MP_QSTR_TFT_TIMINGS), MP_ROM_PTR(&timings1024_dict) },
         { MP_ROM_QSTR(MP_QSTR_TFT_BACKLIGHT), MP_ROM_PTR(&pin_GPIO47) },
@@ -230,22 +232,14 @@ static const mp_rom_map_elem_t board_module_globals_table[] = {
         { MP_ROM_QSTR(MP_QSTR_I2S_WORD_SELECT), MP_ROM_PTR(&pin_GPIO2) },
         { MP_ROM_QSTR(MP_QSTR_I2S_DATA), MP_ROM_PTR(&pin_GPIO5) },
 
-        // { MP_ROM_QSTR(MP_QSTR_TX), MP_ROM_PTR(&pin_GPIO43) },
-        // { MP_ROM_QSTR(MP_QSTR_RX), MP_ROM_PTR(&pin_GPIO44) },
-
-        // { MP_ROM_QSTR(MP_QSTR_SCL), MP_ROM_PTR(&pin_GPIO18) },
-        // { MP_ROM_QSTR(MP_QSTR_SDA), MP_ROM_PTR(&pin_GPIO17) },
-
-        // USB = D- 19, D+ 20
-
         { MP_ROM_QSTR(MP_QSTR_DISPLAY), MP_ROM_PTR(&displays[0].display) },
 
         { MP_ROM_QSTR(MP_QSTR_MIDI_IN),  MP_ROM_PTR(&pin_GPIO11) },
         { MP_ROM_QSTR(MP_QSTR_MIDI_OUT), MP_ROM_PTR(&pin_GPIO12) },
 
         // boot mode button can be used in SW as well
-        // { MP_ROM_QSTR(MP_QSTR_BOOT0), MP_ROM_PTR(&pin_GPIO0) },
-        // { MP_ROM_QSTR(MP_QSTR_BUTTON), MP_ROM_PTR(&pin_GPIO1) },
+        { MP_ROM_QSTR(MP_QSTR_BOOT0), MP_ROM_PTR(&pin_GPIO0) },
+        { MP_ROM_QSTR(MP_QSTR_BUTTON), MP_ROM_PTR(&pin_GPIO1) },
 
         { MP_ROM_QSTR(MP_QSTR_I2C), MP_ROM_PTR(&board_i2c_obj) },
         { MP_ROM_QSTR(MP_QSTR_UART), MP_ROM_PTR(&board_uart_obj) },

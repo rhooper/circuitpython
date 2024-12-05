@@ -136,26 +136,8 @@ void common_hal_dotclockframebuffer_framebuffer_construct(dotclockframebuffer_fr
 
     int gpio_num = 0;
     allocate_gpio_range(blue, num_blue, expected_blue, cfg, &gpio_num, MP_QSTR_blue);
-    // cfg->data_gpio_nums[0] = valid_pin(blue[0], MP_QSTR_blue);
-    // cfg->data_gpio_nums[1] = valid_pin(blue[1], MP_QSTR_blue);
-    // cfg->data_gpio_nums[2] = valid_pin(blue[2], MP_QSTR_blue);
-    // cfg->data_gpio_nums[3] = valid_pin(blue[3], MP_QSTR_blue);
-    // cfg->data_gpio_nums[4] = valid_pin(blue[4], MP_QSTR_blue);
-
     allocate_gpio_range(green, num_green, expected_green, cfg, &gpio_num, MP_QSTR_green);
-    // cfg->data_gpio_nums[5] = valid_pin(green[0], MP_QSTR_green);
-    // cfg->data_gpio_nums[6] = valid_pin(green[1], MP_QSTR_green);
-    // cfg->data_gpio_nums[7] = valid_pin(green[2], MP_QSTR_green);
-    // cfg->data_gpio_nums[8] = valid_pin(green[3], MP_QSTR_green);
-    // cfg->data_gpio_nums[9] = valid_pin(green[4], MP_QSTR_green);
-    // cfg->data_gpio_nums[10] = valid_pin(green[5], MP_QSTR_green);
-
     allocate_gpio_range(red, num_red, expected_red, cfg, &gpio_num, MP_QSTR_red);
-    // cfg->data_gpio_nums[11] = valid_pin(red[0], MP_QSTR_red);
-    // cfg->data_gpio_nums[12] = valid_pin(red[1], MP_QSTR_red);
-    // cfg->data_gpio_nums[13] = valid_pin(red[2], MP_QSTR_red);
-    // cfg->data_gpio_nums[14] = valid_pin(red[3], MP_QSTR_red);
-    // cfg->data_gpio_nums[15] = valid_pin(red[4], MP_QSTR_red);
 
     cfg->disp_gpio_num = GPIO_NUM_NC;
 
